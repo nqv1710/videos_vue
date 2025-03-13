@@ -8,6 +8,9 @@
         <v-btn text @click="goToUsers">
             <v-icon>mdi-account</v-icon> Users
         </v-btn>
+        <v-btn text @click="goToFactory">
+            <v-icon>mdi-factory</v-icon> Factory
+        </v-btn>
     </v-app-bar>
 </template>
 
@@ -24,6 +27,9 @@ export default {
         },
         goToUsers() {
             this.$inertia.visit('/users');
+        },
+        goToFactory() {
+            this.$inertia.visit('/factory-visitors');
         },
     },
 };

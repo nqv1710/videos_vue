@@ -12,17 +12,19 @@ class VisitConfirmation extends Mailable
     use Queueable, SerializesModels;
 
     public $visitor;
-    public $qrCodeBase64;
 
-    public function __construct(FactoryVisitor $visitor, $qrCodeBase64)
+    public function __construct(FactoryVisitor $visitor,)
     {
         $this->visitor = $visitor;
-        $this->qrCodeBase64 = $qrCodeBase64;
     }
 
     public function build()
     {
         return $this->view('emails.visit-confirmation')
-                    ->subject('Xác nhận đăng ký tham quan');
+        ->subject('Xác nhận đăng ký tham quan')
+        ->attach(storage_path('app/public/' . $this->visitor->qr_code), [
+            'as' => 'qrcode.png',
+            'mime' => 'image/png',
+        ]);
     }
 }

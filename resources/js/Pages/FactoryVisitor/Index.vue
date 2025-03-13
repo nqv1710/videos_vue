@@ -15,6 +15,10 @@
                                     Đăng ký mới
                                 </v-btn>
                                 </Link>
+                                <v-btn color="info" @click="syncGoogleSheets" :loading="syncing">
+                                    <v-icon left>mdi-sync</v-icon>
+                                    Đồng bộ Google Sheets
+                                </v-btn>
                             </v-toolbar>
 
                             <v-card-text>
@@ -110,6 +114,8 @@
 import Header from "../../Components/Header.vue";
 import { router } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
+import axios from 'axios';
+import { ref } from 'vue';
 
 export default {
     components: {
@@ -138,7 +144,11 @@ export default {
                 { title: 'QR Code', value: 'qr_code', sortable: false },
                 { title: 'Thao tác', value: 'actions', sortable: false }
             ],
-            localSearch: this.search || ''
+            localSearch: this.search || '',
+            syncing: false,
+            syncProgress: 0,
+            showProgress: false,
+            syncMessage: '',
         }
     },
     watch: {
@@ -168,10 +178,10 @@ export default {
 
             router.get('/factory-visitors', params, {
                 preserveState: true,
-                preserveScroll: true
-            }).finally(() => {
-                this.loading = false;
-            });
+                preserveScroll: true,
+                replace: true,
+                only: ['visitors']
+            })
         },
         showQRCode(visitor) {
             this.selectedVisitor = visitor;
@@ -192,12 +202,15 @@ export default {
         },
         deleteVisitor() {
             if (!this.selectedVisitor) return;
-
             this.deleting = true;
-            router.delete(`/factory-visitors/${this.selectedVisitor.id}`, {
+            this.$inertia.delete(`/factory-visitors/${this.selectedVisitor.id}`, {
+                preserveScroll: true,
+                preserveState: true,
+                only: ['visitors'],
                 onSuccess: () => {
                     this.deleteDialog = false;
-                    this.loadData();
+                    this.visitors.data = this.visitors.data.filter(v => v.id !== this.selectedVisitor.id);
+                    this.visitors.total--;
                 },
                 onFinish: () => {
                     this.deleting = false;
@@ -206,6 +219,37 @@ export default {
         },
         showVisitor(id) {
             this.$inertia.visit(`/factory-visitors/${id}`);
+        },
+        async syncGoogleSheets() {
+            this.syncing = true;
+            this.showProgress = true;
+            this.syncProgress = 0;
+            this.syncMessage = 'Đang bắt đầu đồng bộ...';
+
+            try {
+                const response = await axios.post(route('google-sheets.sync'), {}, {
+                    onUploadProgress: (progressEvent) => {
+                        this.syncProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    },
+                    onDownloadProgress: (progressEvent) => {
+                        this.syncProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    }
+                });
+
+                this.syncMessage = response.data.message;
+                if (response.data.success_count > 0) {
+                    router.reload({ only: ['visitors'] });
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                this.syncMessage = 'Có lỗi xảy ra khi đồng bộ dữ liệu';
+            } finally {
+                setTimeout(() => {
+                    this.syncing = false;
+                    this.showProgress = false;
+                    this.syncProgress = 0;
+                }, 2000);
+            }
         },
     }
 }
