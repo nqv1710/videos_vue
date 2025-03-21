@@ -69,7 +69,9 @@
 
         <div class="qr-code">
             <p><strong>Mã QR Code của bạn:</strong></p>
-            <img src="{{ $message->embed(storage_path('app/public/' . $visitor->qr_code)) }}" alt="QR Code">
+            <img src="{{ asset('storage/' . $visitor->qr_code) }}" alt="QR Code">
+
+
             <p>Vui lòng mang theo mã QR code này khi đến tham quan.</p>
         </div>
 

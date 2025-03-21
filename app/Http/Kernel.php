@@ -13,6 +13,9 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
     ];
+    protected $routeMiddleware = [
+        'google.auth' => \App\Http\Middleware\CheckGoogleToken::class,
+    ];
 
     // ... rest of the file
 }

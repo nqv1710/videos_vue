@@ -76,7 +76,7 @@ class FactoryVisitorController extends Controller
     /**
      * Lưu thông tin đăng ký mới
      */
-    public function store(Request $request)
+    public function store(Request $request,GoogleSheetsService $googleSheetsService)
     {
 
         // Validate đầu vào
@@ -116,7 +116,6 @@ class FactoryVisitorController extends Controller
 
             // Lưu QR code vào storage
             Storage::disk('public')->put($fileName, $qrCode);
-
             // Log để debug
             Log::info('QR Code generated and stored:', [
                 'visitor_id' => $visitor->id,
@@ -129,6 +128,21 @@ class FactoryVisitorController extends Controller
 
             // Gửi email xác nhận với QR code
             Mail::to($visitor->email)->send(new VisitConfirmation($visitor));
+            try {
+                $googleSheetsService->appendRow([
+                    now()->format('d/m/Y H:i:s'), // Timestamp
+                    $visitor->name,
+                    $visitor->email,
+                    $visitor->phone,
+                    $visitor->company ?? '',
+                    $visitor->visit_date->format('d/m/Y H:i:s'),
+                    $visitor->number_of_visitors,
+                    $visitor->purpose ?? '',
+                    $visitor->status ?? '',
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Google Sheets update failed:', ['error' => $e->getMessage()]);
+            }
         } catch (\Exception $e) {
             Log::error('QR Code generation failed:', [
                 'error' => $e->getMessage(),
@@ -202,7 +216,6 @@ class FactoryVisitorController extends Controller
                             $visitor->update($visitorData);
                         } else {
                             $visitor = FactoryVisitor::create($visitorData);
-
                             // Tạo QR Code và gửi email cho visitor mới
                             try {
                                 $qrCode = QrCode::format('png')
@@ -219,10 +232,6 @@ class FactoryVisitorController extends Controller
                                     Mail::to($visitor->email)->send(new VisitConfirmation($visitor));
                                 }
                             } catch (\Exception $e) {
-                                Log::error('Error generating QR code or sending email:', [
-                                    'visitor_id' => $visitor->id,
-                                    'error' => $e->getMessage()
-                                ]);
                             }
                         }
 
@@ -230,11 +239,6 @@ class FactoryVisitorController extends Controller
                     } catch (\Exception $e) {
                         $stats['error']++;
                         $stats['errors'][] = "Dòng {$index}: " . $e->getMessage();
-                        Log::error('Error processing row:', [
-                            'row_index' => $index,
-                            'error' => $e->getMessage(),
-                            'row_data' => $row
-                        ]);
                     }
                 }
             }
@@ -252,10 +256,6 @@ class FactoryVisitorController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Lỗi khi đồng bộ Google Sheets:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
             return response()->json([
                 'message' => 'Có lỗi xảy ra khi đồng bộ dữ liệu.',
                 'error' => $e->getMessage(),
@@ -320,6 +320,35 @@ class FactoryVisitorController extends Controller
 
             return redirect()->back()
                 ->with('error', 'Có lỗi xảy ra khi xóa đăng ký tham quan.');
+        }
+    }
+
+    public function updateStatus(Request $request, FactoryVisitor $factoryVisitor)
+    {
+        try {
+            Log::info('Updating visitor status:', [
+                'visitor_id' => $factoryVisitor->id,
+                'current_status' => $factoryVisitor->status,
+                'new_status' => $request->status
+            ]);
+
+            $request->validate([
+                'status' => 'required|in:pending,approved,rejected,completed'
+            ]);
+
+            $factoryVisitor->update([
+                'status' => $request->status
+            ]);
+
+            return back()->with('success', 'Trạng thái đã được cập nhật thành công');
+        } catch (\Exception $e) {
+            Log::error('Error updating visitor status:', [
+                'visitor_id' => $factoryVisitor->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->with('error', 'Có lỗi xảy ra khi cập nhật trạng thái');
         }
     }
 }

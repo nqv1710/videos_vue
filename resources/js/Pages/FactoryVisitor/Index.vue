@@ -1,5 +1,6 @@
 <template>
     <v-app>
+        <Head title="Danh sách đăng ký tham quan" />
         <Header />
         <v-main>
             <v-container>
@@ -20,16 +21,7 @@
                                     Đồng bộ Google Sheets
                                 </v-btn>
                             </v-toolbar>
-
                             <v-card-text>
-                                <v-row>
-                                    <v-col cols="12" md="4">
-                                        <v-text-field :value="search" @input="handleSearchInput"
-                                            append-icon="mdi-magnify" label="Tìm kiếm" single-line
-                                            hide-details></v-text-field>
-                                    </v-col>
-                                </v-row>
-
                                 <v-data-table :headers="headers" :items="visitors.data" :loading="loading"
                                     :options.sync="options" :server-items-length="visitors.total" class="elevation-1">
                                     <template v-slot:item.visit_date="{ item }">
@@ -113,14 +105,15 @@
 <script>
 import Header from "../../Components/Header.vue";
 import { router } from '@inertiajs/vue3';
-import { Link } from '@inertiajs/vue3';
+import { Link, Head } from '@inertiajs/vue3';
 import axios from 'axios';
 import { ref } from 'vue';
 
 export default {
     components: {
         Header,
-        Link
+        Link,
+        Head
     },
     props: {
         visitors: Object,
@@ -163,9 +156,6 @@ export default {
         formatDate(date) {
             return new Date(date).toLocaleString('vi-VN');
         },
-        handleSearchInput: debounce(function (value) {
-            this.loadData(value);
-        }, 300),
         loadData(searchValue = this.search) {
             this.loading = true;
             const params = {

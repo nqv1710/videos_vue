@@ -29,4 +29,15 @@ class GoogleSheetsService
         $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
         return $response->getValues();
     }
+    public function appendRow(array $values, $range = 'Sheet1!A:I')
+    {
+        $body = new Sheets\ValueRange([
+            'values' => [$values] // Chỉ thêm một hàng dữ liệu
+        ]);
+
+        $params = ['valueInputOption' => 'RAW'];
+
+        // Ghi dữ liệu vào Google Sheets
+        return $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $body, $params);
+    }
 }
