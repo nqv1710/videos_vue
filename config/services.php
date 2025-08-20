@@ -41,5 +41,10 @@ return [
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
+    'bitrix' => [
+        'client_id' => env('BITRIX_CLIENT_ID'),
+        'client_secret' => env('BITRIX_CLIENT_SECRET'),
+        'redirect' => env('BITRIX_REDIRECT_URI'),
+    ],
 
 ];

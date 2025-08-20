@@ -112,6 +112,19 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'bitrix' => [
+            'driver' => env('BITRIX_DB_CONNECTION', 'pgsql'), // Hoặc 'mysql' nếu dùng MySQL
+            'host' => env('BITRIX_DB_HOST', '127.0.0.1'),
+            'port' => env('BITRIX_DB_PORT', '5432'),
+            'database' => env('BITRIX_DB_DATABASE', 'forge'),
+            'username' => env('BITRIX_DB_USERNAME', 'forge'),
+            'password' => env('BITRIX_DB_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
     ],
 
     /*
@@ -147,7 +160,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 

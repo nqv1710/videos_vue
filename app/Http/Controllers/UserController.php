@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -45,6 +46,22 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('users.index');
+    }
+
+    public function user(Request $request)
+    {
+        $user = $request->user('api');
+        return response()->json($user);
+    }
+
+    public function userByToken(Request $request)
+    {
+        $token = $request->header('Authorization');
+        $user = User::where('api_token', $token)->first();
+
+        Auth::login($user);
+
+        return response()->json($user);
     }
 
     /**

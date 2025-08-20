@@ -1,23 +1,16 @@
 <?php
 
-use App\Http\Controllers\EmailController;
-use App\Http\Controllers\FactoryVisitorController;
-use App\Http\Controllers\GoogleSheetController;
+use App\Http\Controllers\BitrixLoginController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
-use App\Models\FormSubmission;
-use App\Services\GoogleSheetsService;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
-use App\Http\Controllers\GmailController;
-use Google\Service\Gmail;
-use Google\Client;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
+    return Inertia::render('Dashboard', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
@@ -25,25 +18,28 @@ Route::get('/', function () {
     ]);
 });
 
-// Route::get('/emails', [EmailController::class, 'index'])->name('emails.index');
+Route::get('/bitrix/login', [BitrixLoginController::class, 'redirectToBitrix']);
+Route::get('/bitrix/callback', [BitrixLoginController::class, 'handleCallback']);
 
+Route::get('/admin', function () {
+    return Inertia::render('Admin/Index');
+})->middleware('auth')->name('admin');
 
-// GET API google sheet update and send data to database
+Route::get('/admin/list-comment/{id}/{user_id}', function ($id, $user_id) {
+    return Inertia::render('Admin/ListComment', [
+        'id' => $id,
+        'user_id' => $user_id,
+    ]);
+})->middleware('auth')->name('admin.list-comment');
+
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware('auth')->name('dashboard');
+
 Route::middleware('auth')->group(function () {
-    // GET API google sheet update and send data to database
-    Route::post('/sync-google-sheets', [FactoryVisitorController::class, 'syncFromGoogleSheets'])
-        ->name('google-sheets.sync');
-
-    // Resource routes
-    Route::resource('users', UserController::class);
-    Route::resource('factory-visitors', FactoryVisitorController::class);
-    Route::patch('/factory-visitors/{factoryVisitor}/status', [FactoryVisitorController::class, 'updateStatus'])
-        ->name('factory-visitors.update-status');
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->middleware('verified')->name('dashboard');
+
 
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -52,11 +48,4 @@ Route::middleware('auth')->group(function () {
 });
 
 // routes/web.php
-
-
-Route::get('/gmail/auth', [GmailController::class, 'redirectToGoogle'])->name('gmail.auth');
-Route::get('/gmail/callback', [GmailController::class, 'handleGoogleCallback'])->name('gmail.callback');
-Route::get('/gmail/inbox', [GmailController::class, 'listEmails'])->middleware('google.auth')->name('gmail.inbox');
-Route::get('/emails/{id}', [GmailController::class, 'showEmail'])->name('emails.show');
-
 require __DIR__ . '/auth.php';
