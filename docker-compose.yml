@@ -3,7 +3,7 @@ version: "3.8"
 services:
   app:
     build: .
-    image: videos-app-php:v1.1
+    image: videos-app-php:v1.2.2
     container_name: videos_container
     restart: unless-stopped
     env_file:
@@ -17,14 +17,15 @@ services:
       # - postgres
       # - redis
     # command: php artisan serve --host=0.0.0.0 --port=8000
-    ports:
-      - "8000:8000"
+    # ports:
+      # - "8000:8000"
+      # - "5173:5173"   # Vite
 
   nginx:
     image: nginx:1.25-alpine
     restart: unless-stopped
     ports:
-      - "8000:80"
+      - "8080:80"
     depends_on:
       - app
     volumes:

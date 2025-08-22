@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('bitrix_access_token')->nullable();
             $table->string('bitrix_refresh_token')->nullable();
-            $table->timestamp('bitrix_expires',6)->nullable();
+            $table->dateTime('bitrix_expires')->nullable();
         });
     }
 

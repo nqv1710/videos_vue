@@ -9,42 +9,38 @@ use Inertia\Inertia;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
-Route::get('/', function () {
-    return Inertia::render('Dashboard', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
 
-Route::get('/bitrix/login', [BitrixLoginController::class, 'redirectToBitrix']);
-Route::get('/bitrix/callback', [BitrixLoginController::class, 'handleCallback']);
-
-Route::get('/admin', function () {
-    return Inertia::render('Admin/Index');
-})->name('admin');
-
-Route::get('/admin/list-comment/{id}/{user_id}', function ($id, $user_id) {
-    return Inertia::render('Admin/ListComment', [
-        'id' => $id,
-        'user_id' => $user_id,
-    ]);
-})->name('admin.list-comment');
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware('auth')->name('dashboard');
+Route::get('/bitrix/login', [BitrixLoginController::class, 'redirectToBitrix'])->name('bitrix.login');
+Route::get('/bitrix/callback', [BitrixLoginController::class, 'handleCallback'])->name('bitrix.callback');
 
 Route::middleware('auth')->group(function () {
+    // Trang chính
+    Route::get('/', function () {
+        return Inertia::render('Dashboard', [
+            'canLogin'       => Route::has('login'),
+            'canRegister'    => Route::has('register'),
+            'laravelVersion' => Application::VERSION,
+            'phpVersion'     => PHP_VERSION,
+        ]);
+    });
 
-    // Dashboard
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))
+        ->name('dashboard');
 
+    // Admin routes
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/', fn () => Inertia::render('Admin/Index'))->name('index');
+        Route::get('/list-comment/{id}/{user_id}', fn ($id, $user_id) => 
+            Inertia::render('Admin/ListComment', compact('id', 'user_id'))
+        )->name('list-comment');
+    });
 
     // Profile routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::controller(ProfileController::class)->prefix('profile')->name('profile.')->group(function () {
+        Route::get('/', 'edit')->name('edit');
+        Route::patch('/', 'update')->name('update');
+        Route::delete('/', 'destroy')->name('destroy');
+    });
 });
 
 // routes/web.php

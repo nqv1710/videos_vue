@@ -1,18 +1,32 @@
-# Docker build context ignore
+# Git & IDE
 .git
-node_modules
-vendor
-storage/*.log
-storage/framework/cache/*
-storage/framework/sessions/*
-storage/framework/views/*
-.env
+.gitignore
+*.swp
 .DS_Store
+.idea/
+.vscode/
+
+# Node / Laravel stuff
+node_modules/
+vendor/
+.env
+.env.*.php
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.idea
-.vscode
-coverage
+
+# Laravel cache & logs
+storage/*.log
+storage/logs/
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*.php
+public/hot
+public/storage
+storage/debugbar
+
+# Tests / Coverage
+coverage/
+phpunit.xml
 *.local
-**/*.swp

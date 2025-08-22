@@ -340,6 +340,7 @@ const handleSearch = () => {
 
 onMounted(async () => {
     await ensureUserLoaded()
+    console.log(user.value);
 
     fetchVideos();
 });

@@ -46,5 +46,10 @@ return [
         'client_secret' => env('BITRIX_CLIENT_SECRET'),
         'redirect' => env('BITRIX_REDIRECT_URI'),
     ],
+    'bitrix_dev' => [
+        'client_id' => env('BITRIX_CLIENT_ID_DEV'),
+        'client_secret' => env('BITRIX_CLIENT_SECRET_DEV'),
+        'redirect' => env('BITRIX_REDIRECT_URI_DEV'),
+    ],
 
 ];
